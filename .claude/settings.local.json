@@ -3,11 +3,13 @@
     "allow": [
       "Bash(git --version && node --version && npm --version 2>/dev/null)",
       "Bash(cd:*)",
+      "Bash(git *)",
       "Bash(cd /c/Repos/cc-test && npx create-next-app@latest . --typescript --tailwind --app --src-dir --import-alias \"@/*\" --yes 2>&1)",
       "Bash(node:*)",
       "Bash(cd /c/Repos/cc-test && rm package.json && npx create-next-app@14 . --typescript --tailwind --app --src-dir --import-alias \"@/*\" --yes 2>&1)",
       "Bash(cd /c/Repos/cc-test && git add -A && git commit -m \"chore: scaffold Next.js app\" 2>&1)",
-      "Bash(cd /c/Repos/cc-test && git config user.email \"dev@interview-trainer.app\" && git config user.name \"Interview Trainer\" && git add -A && git commit -m \"chore: scaffold Next.js app\" 2>&1)"
+      "Bash(cd /c/Repos/cc-test && git config user.email \"dev@interview-trainer.app\" && git config user.name \"Interview Trainer\" && git add -A && git commit -m \"chore: scaffold Next.js app\" 2>&1)",
+      "Bash(tail:*)"
     ]
   }
 }
