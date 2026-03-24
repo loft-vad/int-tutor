@@ -67,7 +67,7 @@ export function FlashcardSession({ topic }: FlashcardSessionProps) {
   if (!currentCard) return null;
 
   return (
-    <div className="flex flex-col gap-4 px-4 pb-6">
+    <div className="flex flex-col gap-4 px-4 pb-6 min-h-[calc(100vh-10rem)]">
       {/* Progress header */}
       <div className="space-y-2">
         <div className="flex items-center justify-between text-sm text-slate-500">
@@ -80,7 +80,7 @@ export function FlashcardSession({ topic }: FlashcardSessionProps) {
       </div>
 
       {/* Card */}
-      <div style={{ minHeight: '240px' }}>
+      <div className="flex-1" style={{ minHeight: '300px' }}>
         <FlipCard card={currentCard} isFlipped={isFlipped} onFlip={flip} />
       </div>
 

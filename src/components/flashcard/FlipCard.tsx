@@ -26,7 +26,7 @@ export function FlipCard({ card, isFlipped, onFlip }: FlipCardProps) {
 
   return (
     <div
-      className="w-full cursor-pointer perspective-1000 select-none"
+      className="w-full h-full cursor-pointer perspective-1000 select-none"
       onClick={onFlip}
       role="button"
       aria-label={isFlipped ? 'Card back — click to flip' : 'Card front — click to see answer'}
@@ -44,7 +44,7 @@ export function FlipCard({ card, isFlipped, onFlip }: FlipCardProps) {
           isFlipped ? 'rotate-y-180' : '',
         ].join(' ')}
         style={{
-          minHeight: '240px',
+          height: '100%',
           transformStyle: 'preserve-3d',
           transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
           transition: 'transform 0.5s ease',

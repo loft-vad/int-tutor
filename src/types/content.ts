@@ -5,7 +5,8 @@ export type Topic =
   | 'nodejs'
   | 'async-patterns'
   | 'data-structures'
-  | 'system-design';
+  | 'system-design'
+  | 'aws';
 
 export type QuestionType = 'flashcard' | 'multiple-choice' | 'coding-challenge';
 export type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced';

@@ -6,6 +6,7 @@ import { nodejsQuestions } from './nodejs';
 import { asyncPatternsQuestions } from './async-patterns';
 import { dataStructuresQuestions } from './data-structures';
 import { systemDesignQuestions } from './system-design';
+import { awsQuestions } from './aws';
 
 export const allQuestions: Question[] = [
   ...javascriptFundamentalsQuestions,
@@ -15,6 +16,7 @@ export const allQuestions: Question[] = [
   ...asyncPatternsQuestions,
   ...dataStructuresQuestions,
   ...systemDesignQuestions,
+  ...awsQuestions,
 ];
 
 export {
@@ -25,4 +27,5 @@ export {
   asyncPatternsQuestions,
   dataStructuresQuestions,
   systemDesignQuestions,
+  awsQuestions,
 };
