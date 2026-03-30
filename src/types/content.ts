@@ -6,7 +6,8 @@ export type Topic =
   | 'async-patterns'
   | 'data-structures'
   | 'system-design'
-  | 'aws';
+  | 'aws'
+  | 'databases';
 
 export type QuestionType = 'flashcard' | 'multiple-choice' | 'coding-challenge';
 export type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced';

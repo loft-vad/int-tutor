@@ -80,7 +80,7 @@ export function FlashcardSession({ topic }: FlashcardSessionProps) {
       </div>
 
       {/* Card */}
-      <div className="flex-1" style={{ minHeight: '300px' }}>
+      <div className="flex-1 relative" style={{ minHeight: '300px' }}>
         <FlipCard card={currentCard} isFlipped={isFlipped} onFlip={flip} />
       </div>
 

@@ -83,6 +83,15 @@ export const TOPIC_META: Record<Topic, TopicMeta> = {
     borderColor: 'border-amber-400',
     description: 'Core AWS services, IAM, networking, and cloud architecture',
   },
+  databases: {
+    id: 'databases',
+    label: 'Databases',
+    icon: '🗄',
+    color: 'text-black',
+    bgColor: 'bg-rose-100',
+    borderColor: 'border-rose-400',
+    description: 'SQL, indexing, replication, partitioning, and query performance',
+  },
 };
 
 export const ALL_TOPICS: Topic[] = Object.keys(TOPIC_META) as Topic[];
