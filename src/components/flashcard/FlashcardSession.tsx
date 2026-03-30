@@ -79,9 +79,11 @@ export function FlashcardSession({ topic }: FlashcardSessionProps) {
         <ProgressBar value={currentIndex} max={totalCards} size="sm" />
       </div>
 
-      {/* Card */}
+      {/* Card — absolute inner div gives FlipCard a resolved pixel height */}
       <div className="flex-1 relative" style={{ minHeight: '300px' }}>
-        <FlipCard card={currentCard} isFlipped={isFlipped} onFlip={flip} />
+        <div className="absolute inset-0">
+          <FlipCard card={currentCard} isFlipped={isFlipped} onFlip={flip} />
+        </div>
       </div>
 
       {/* Actions */}
