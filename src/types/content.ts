@@ -7,7 +7,25 @@ export type Topic =
   | 'data-structures'
   | 'system-design'
   | 'aws'
-  | 'databases';
+  | 'databases'
+  // ── Frontend framework track ──
+  | 'angular'
+  | 'web-components'
+  // ── AI Engineer track ──
+  | 'ai-fundamentals'
+  | 'prompt-engineering'
+  | 'rag'
+  | 'vector-databases'
+  | 'ai-agents'
+  | 'llm-integration'
+  | 'ai-security'
+  | 'python-ai'
+  | 'ai-assisted-dev';
+
+/**
+ * Learning tracks group topics for the dashboard. A topic belongs to exactly one track.
+ */
+export type Track = 'fullstack-js' | 'ai-engineer';
 
 export type QuestionType = 'flashcard' | 'multiple-choice' | 'coding-challenge';
 export type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced';
@@ -47,7 +65,7 @@ export interface CodingChallenge extends QuestionBase {
   prompt: string;
   starterCode: string;
   solutionCode: string;
-  language: 'javascript' | 'typescript';
+  language: 'javascript' | 'typescript' | 'python';
   hints: string[];
 }
 

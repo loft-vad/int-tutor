@@ -1,18 +1,12 @@
 import { openDB, type IDBPDatabase } from 'idb';
 import type { StorageAdapter } from '@/types/storage';
 import type { CardProgress, UserSettings } from '@/types/progress';
+import { DEFAULT_SETTINGS } from './defaults';
 
 const DB_NAME = 'interview-trainer';
 const DB_VERSION = 1;
 const STORE_PROGRESS = 'progress';
 const STORE_SETTINGS = 'settings';
-
-const DEFAULT_SETTINGS: UserSettings = {
-  dailyGoal: 20,
-  preferredTopics: [],
-  preferredDifficulty: 'all',
-  timerEnabled: true,
-};
 
 async function getDB(): Promise<IDBPDatabase> {
   return openDB(DB_NAME, DB_VERSION, {

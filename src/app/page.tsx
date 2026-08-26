@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useCardProgress } from '@/hooks/useCardProgress';
 import { SegmentedProgress } from '@/components/ui/ProgressBar';
-import { TOPIC_META, ALL_TOPICS } from '@/config/topics';
+import { TOPIC_META, ALL_TOPICS, ALL_TRACKS, TRACK_META, topicsForTrack } from '@/config/topics';
 import { allQuestions } from '@/data';
 
 const STUDY_MODES = [
@@ -89,29 +89,43 @@ function DashboardContent() {
         </div>
       </div>
 
-      {/* Quick topic pills */}
-      <div>
-        <h2 className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-3">Topics</h2>
-        <div className="flex flex-wrap gap-2">
-          {ALL_TOPICS.map((topic) => {
-            const meta = TOPIC_META[topic];
-            return (
-              <Link
-                key={topic}
-                href={`/flashcards/${topic}`}
-                className={[
-                  'px-3 py-1.5 rounded-full text-sm font-medium border transition-colors hover:opacity-80',
-                  meta.bgColor,
-                  meta.color,
-                  meta.borderColor,
-                ].join(' ')}
-              >
-                {meta.label}
-              </Link>
-            );
-          })}
-        </div>
-      </div>
+      {/* Topics, grouped by learning track */}
+      {ALL_TRACKS.map((track) => {
+        const trackMeta = TRACK_META[track];
+        const topics = topicsForTrack(track);
+        const trackTotal = allQuestions.filter((q) => TOPIC_META[q.topic].track === track).length;
+
+        return (
+          <div key={track}>
+            <div className="flex items-baseline justify-between mb-1">
+              <h2 className="text-sm font-semibold text-slate-600 uppercase tracking-wide">
+                {trackMeta.icon} {trackMeta.label}
+              </h2>
+              <span className="text-xs text-slate-400">{trackTotal} questions</span>
+            </div>
+            <p className="text-xs text-slate-400 mb-3">{trackMeta.description}</p>
+            <div className="flex flex-wrap gap-2">
+              {topics.map((topic) => {
+                const meta = TOPIC_META[topic];
+                return (
+                  <Link
+                    key={topic}
+                    href={`/flashcards/${topic}`}
+                    className={[
+                      'px-3 py-1.5 rounded-full text-sm font-medium border transition-colors hover:opacity-80',
+                      meta.bgColor,
+                      meta.color,
+                      meta.borderColor,
+                    ].join(' ')}
+                  >
+                    {meta.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

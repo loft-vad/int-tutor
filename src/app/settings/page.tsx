@@ -2,6 +2,7 @@
 
 import { TopBar } from '@/components/layout/TopBar';
 import { Button } from '@/components/ui/Button';
+import { SyncPanel } from '@/components/sync/SyncPanel';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { ALL_TOPICS, TOPIC_META } from '@/config/topics';
 import type { Topic, DifficultyLevel } from '@/types/content';
@@ -123,6 +124,9 @@ export default function SettingsPage() {
             })}
           </div>
         </div>
+
+        {/* Cross-device sync (renders only when Firebase is configured) */}
+        <SyncPanel />
 
         {/* Reset */}
         <Button

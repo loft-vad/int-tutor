@@ -14,7 +14,7 @@ const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
 
 interface CodeEditorProps {
   value: string;
-  language: 'javascript' | 'typescript';
+  language: 'javascript' | 'typescript' | 'python';
   onChange: (value: string) => void;
   readOnly?: boolean;
   height?: string;
