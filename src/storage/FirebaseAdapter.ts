@@ -3,11 +3,20 @@ import type { CardProgress, UserSettings } from '@/types/progress';
 import { DEFAULT_SETTINGS } from './defaults';
 import { getFirebase, type FirebaseHandles } from './firebase';
 
+/** Firestore collection holding this app's per-user documents.
+ *
+ * Deliberately app-specific rather than a generic `users`: a Firebase project is
+ * often shared between several apps, and a generic collection name would collide
+ * with another app's user documents.
+ */
+export const COLLECTION = 'interviewTrainerUsers';
+
 /**
  * Remote {@link StorageAdapter} backed by Cloud Firestore.
  *
  * Layout — one document per user, two fields:
- *   users/{uid}  { progress: Record<string, CardProgress>, settings: UserSettings, updatedAt }
+ *   interviewTrainerUsers/{uid}
+ *     { progress: Record<string, CardProgress>, settings: UserSettings, updatedAt }
  *
  * A single document keeps reads/writes to one operation and stays far below the
  * 1 MiB document limit (~1 KB per card × a few thousand cards).
@@ -24,7 +33,7 @@ export class FirebaseAdapter implements StorageAdapter {
 
   private async userDoc() {
     const { db, uid, firestore } = await this.handles;
-    return firestore.doc(db, 'users', uid);
+    return firestore.doc(db, COLLECTION, uid);
   }
 
   private async read<T>(field: 'progress' | 'settings', fallback: T): Promise<T> {
