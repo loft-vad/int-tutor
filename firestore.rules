@@ -2,20 +2,16 @@ rules_version = '2';
 
 // Interview Trainer — progress sync rules.
 //
-// ⚠ SHARED PROJECT WARNING
-// Firestore keeps ONE ruleset per database. `firebase deploy --only firestore:rules`
-// REPLACES the entire ruleset for the project — it does not merge. If this project
-// hosts other apps, do not deploy this file as-is: copy the `match` block below
-// into the project's existing ruleset and deploy that.
+// Grants exactly one thing: a signed-in user may read and write the single
+// document whose ID is their own uid. Everything else stays denied, because
+// Firestore denies by default — no catch-all rule is needed (and a trailing
+// `allow ...: if false` would be a no-op, since allow rules are OR'd).
 //
-// Note also that a trailing `match /{document=**} { allow read, write: if false; }`
-// is a no-op in Firestore — access is already denied unless a rule allows it, and
-// `allow` rules are OR'd. It cannot be used to lock down other collections.
+// Note: deploying rules REPLACES a database's entire ruleset; it never merges.
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Interview Trainer: a user may touch only their own document ──
     match /interviewTrainerUsers/{uid} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
     }
