@@ -1,7 +1,7 @@
 import type { StorageAdapter } from '@/types/storage';
 import type { CardProgress, UserSettings } from '@/types/progress';
 import { DEFAULT_SETTINGS } from './defaults';
-import { getFirebase, type FirebaseHandles } from './firebase';
+import { getCore, getUid } from './firebase';
 
 /** Firestore collection holding this app's per-user documents.
  *
@@ -25,26 +25,27 @@ export const COLLECTION = 'interviewTrainerUsers';
  * with a local adapter so the PWA still works offline. See `adapters.ts`.
  */
 export class FirebaseAdapter implements StorageAdapter {
-  private handles: Promise<FirebaseHandles>;
-
-  constructor() {
-    this.handles = getFirebase();
-  }
-
+  /**
+   * Resolves the target document on EVERY call rather than caching it.
+   *
+   * Signing in with Google on a second device adopts an existing account and
+   * changes the uid; a cached document reference would keep pointing at the old
+   * anonymous document and sync would silently stop working.
+   */
   private async userDoc() {
-    const { db, uid, firestore } = await this.handles;
+    const [{ db, firestore }, uid] = await Promise.all([getCore(), getUid()]);
     return firestore.doc(db, COLLECTION, uid);
   }
 
   private async read<T>(field: 'progress' | 'settings', fallback: T): Promise<T> {
-    const { firestore } = await this.handles;
+    const { firestore } = await getCore();
     const snap = await firestore.getDoc(await this.userDoc());
     if (!snap.exists()) return fallback;
     return (snap.data()?.[field] as T) ?? fallback;
   }
 
   private async write(field: 'progress' | 'settings', value: unknown): Promise<void> {
-    const { firestore } = await this.handles;
+    const { firestore } = await getCore();
     await firestore.setDoc(
       await this.userDoc(),
       { [field]: value, updatedAt: firestore.serverTimestamp() },
@@ -69,7 +70,7 @@ export class FirebaseAdapter implements StorageAdapter {
   }
 
   async clear(): Promise<void> {
-    const { firestore } = await this.handles;
+    const { firestore } = await getCore();
     await firestore.deleteDoc(await this.userDoc());
   }
 }

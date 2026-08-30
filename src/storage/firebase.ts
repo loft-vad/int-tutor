@@ -9,13 +9,20 @@
  * variables — see `.env.example`. If any required variable is missing,
  * {@link isFirebaseConfigured} returns false and the app falls back to
  * local-only storage.
+ *
+ * Two things are deliberately separated here:
+ *   - the **core** (app, auth, Firestore) is initialised exactly once;
+ *   - the **uid** is resolved on every call.
+ *
+ * That split matters: signing in with Google on a second device adopts an
+ * existing account and therefore CHANGES the uid. Anything that caches the uid
+ * keeps writing to the old (anonymous) document and sync silently does nothing.
  */
 
-export interface FirebaseHandles {
+export interface FirebaseCore {
   db: import('firebase/firestore').Firestore;
-  uid: string;
-  firestore: typeof import('firebase/firestore');
   auth: import('firebase/auth').Auth;
+  firestore: typeof import('firebase/firestore');
 }
 
 const config = {
@@ -33,19 +40,18 @@ export function isFirebaseConfigured(): boolean {
   return Boolean(config.apiKey && config.projectId && config.appId);
 }
 
-let _handles: Promise<FirebaseHandles> | null = null;
+let _core: Promise<FirebaseCore> | null = null;
 
 /**
- * Initialise Firebase, sign in, and resolve the handles.
+ * Initialise the Firebase app, auth, and Firestore — exactly once.
  *
- * Signs in anonymously by default so sync works with zero user friction; the
- * anonymous account can later be upgraded to Google via {@link signInWithGoogle},
- * which preserves the same uid and therefore the same progress document.
+ * `initializeFirestore` throws `failed-precondition` if called twice on the same
+ * app, so this promise is never reset. Sign-in state is NOT captured here.
  */
-export function getFirebase(): Promise<FirebaseHandles> {
-  if (_handles) return _handles;
+export function getCore(): Promise<FirebaseCore> {
+  if (_core) return _core;
 
-  _handles = (async (): Promise<FirebaseHandles> => {
+  _core = (async (): Promise<FirebaseCore> => {
     const [{ initializeApp, getApps }, authMod, firestore] = await Promise.all([
       import('firebase/app'),
       import('firebase/auth'),
@@ -59,64 +65,83 @@ export function getFirebase(): Promise<FirebaseHandles> {
     const auth = authMod.getAuth(app);
     await authMod.setPersistence(auth, authMod.browserLocalPersistence);
 
-    const user =
-      auth.currentUser ??
-      (await new Promise<import('firebase/auth').User>((resolve, reject) => {
-        const unsub = authMod.onAuthStateChanged(
-          auth,
-          (u) => {
-            if (u) {
-              unsub();
-              resolve(u);
-            } else {
-              authMod.signInAnonymously(auth).catch(reject);
-            }
-          },
-          reject
-        );
-      }));
-
     const db = firestore.initializeFirestore(app, {
       localCache: firestore.persistentLocalCache({
         tabManager: firestore.persistentMultipleTabManager(),
       }),
     });
 
-    return { db, uid: user.uid, firestore, auth };
+    return { db, auth, firestore };
   })();
 
-  return _handles;
+  return _core;
 }
 
-/** Upgrade the current anonymous account to Google, keeping the same uid. */
+/**
+ * The current user's uid, resolved fresh on every call.
+ *
+ * Signs in anonymously when nobody is signed in, so sync works with zero user
+ * friction. The anonymous account can later be upgraded via
+ * {@link signInWithGoogle}.
+ */
+export async function getUid(): Promise<string> {
+  const { auth } = await getCore();
+  if (auth.currentUser) return auth.currentUser.uid;
+
+  const authMod = await import('firebase/auth');
+  const user = await new Promise<import('firebase/auth').User>((resolve, reject) => {
+    const unsub = authMod.onAuthStateChanged(
+      auth,
+      (u) => {
+        if (u) {
+          unsub();
+          resolve(u);
+        } else {
+          authMod.signInAnonymously(auth).catch(reject);
+        }
+      },
+      reject
+    );
+  });
+  return user.uid;
+}
+
+/**
+ * Sign in with Google.
+ *
+ * Prefers `linkWithPopup` on an anonymous account, which KEEPS the same uid so
+ * progress accumulated before signing in carries over. If that Google account
+ * already owns an account (`auth/credential-already-in-use` — the normal case on
+ * a second device), falls back to a plain sign-in and adopts it. The uid changes
+ * in that path, which is why nothing caches it.
+ */
 export async function signInWithGoogle(): Promise<{ uid: string; email: string | null }> {
-  const { auth } = await getFirebase();
+  const { auth } = await getCore();
   const authMod = await import('firebase/auth');
   const provider = new authMod.GoogleAuthProvider();
 
   const current = auth.currentUser;
-  try {
-    // linkWithPopup keeps the anonymous uid, so existing progress carries over.
-    if (current?.isAnonymous) {
+  if (current?.isAnonymous) {
+    try {
       const cred = await authMod.linkWithPopup(current, provider);
       return { uid: cred.user.uid, email: cred.user.email };
+    } catch (err) {
+      const code = (err as { code?: string }).code;
+      // Anything other than "this Google account already exists" is a real
+      // failure (popup blocked, unauthorized domain, user cancelled).
+      if (code !== 'auth/credential-already-in-use') throw err;
     }
-  } catch (err) {
-    // credential-already-in-use: this Google account already has its own uid.
-    // Fall through to a plain sign-in and adopt that account's data.
-    if ((err as { code?: string }).code !== 'auth/credential-already-in-use') throw err;
   }
 
   const cred = await authMod.signInWithPopup(auth, provider);
-  _handles = null; // uid may have changed — force re-resolution
   return { uid: cred.user.uid, email: cred.user.email };
 }
 
 export async function signOut(): Promise<void> {
-  const { auth } = await getFirebase();
+  const { auth } = await getCore();
   const authMod = await import('firebase/auth');
   await authMod.signOut(auth);
-  _handles = null;
+  // The next getUid() signs in anonymously again.
 }
 
 /** Current account info, or null when sync is not configured/initialised. */
@@ -126,7 +151,7 @@ export async function getAccount(): Promise<{
   isAnonymous: boolean;
 } | null> {
   if (!isFirebaseConfigured()) return null;
-  const { auth } = await getFirebase();
+  const { auth } = await getCore();
   const u = auth.currentUser;
   return u ? { uid: u.uid, email: u.email, isAnonymous: u.isAnonymous } : null;
 }
