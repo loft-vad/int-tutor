@@ -68,6 +68,15 @@ under Firestore's 1 MiB document limit, and each sync is a single read or write.
 ## Auth
 
 Anonymous sign-in by default — sync works with zero friction, scoped to that browser.
+
+**Anonymous alone is not cross-device sync.** Each browser gets its own uid, so
+progress reaches the cloud but every device has a separate document — a per-device
+backup. Google sign-in is what links devices to one uid. See
+`.claude/memory/firebase-project-setup.md`.
+
+**Never cache the uid, and dedupe the sign-in handshake.** Concurrent callers each
+triggering `signInAnonymously` create separate accounts and produce
+`permission-denied`. See `.claude/memory/sync-concurrency.md`.
 "Sign in with Google" calls `linkWithPopup`, which **keeps the same uid**, so existing
 progress carries over rather than starting fresh. If that Google account already has its
 own uid (`auth/credential-already-in-use`), the code falls back to a plain sign-in and

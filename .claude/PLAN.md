@@ -52,6 +52,16 @@ New topics, each a file in `src/data/`:
 - [x] `.claude/memory/*.md` — durable project decisions
 - [x] `CLAUDE.md` updated to point at both
 
+### WS5 — Ship  `[x]`
+- [x] Firebase project `int-tutor` created and configured (Firestore, anonymous +
+      Google auth, rules published, `loft-vad.github.io` authorized)
+- [x] Six `NEXT_PUBLIC_FIREBASE_*` secrets set on the repo; workflow passes them
+      as build-time `env:`
+- [x] CI runs `npm run check` before building
+- [x] Deployed to GitHub Pages and verified in a real browser
+- [x] Post-deploy fixes: sync concurrency, font application, Settings entry point
+      (see `.claude/memory/`)
+
 ## Decisions log
 | # | Decision | Rationale |
 |---|---|---|
@@ -61,3 +71,7 @@ New topics, each a file in `src/data/`:
 | 4 | `angular` and `web-components` as separate topics | Stencil/custom-element knowledge is reusable outside Angular; separate topics give cleaner filtering |
 | 5 | AI track split into 9 topics, not one `ai` topic | Matrix scores each competency separately; per-topic progress mirrors the eval matrix |
 | 6 | Difficulty maps to matrix levels | `beginner`=Novice, `intermediate`=Intermediate, `advanced`=Advanced/Expert |
+| 7 | Dedicated Firebase project, not a shared one | One ruleset and one user pool per project; sharing couples two apps' security |
+| 8 | Bundled Geist font, no `system-ui` in the stack | The face must not vary by operating system |
+| 9 | Settings reached via a dashboard gear, not a 6th nav item | Six bottom-nav items at 375px squeeze each to ~62px |
+| 10 | Sync errors log to console with the provider error code | They were swallowed into state, which made the failure undebuggable |

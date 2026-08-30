@@ -26,6 +26,9 @@ Start with `.claude/knowledge/README.md` and `.claude/memory/README.md`.
 
 **Before adding content**, read `.claude/knowledge/content-authoring.md`.
 **Before changing storage**, read `.claude/memory/storage-seam.md`.
+**Before touching sync, styling, or navigation**, read
+`.claude/memory/verification-discipline.md` — three features shipped broken
+through a fully green `npm run check`.
 
 ## Tech Stack
 - **Next.js 14** (App Router, TypeScript strict, `src/` dir, `@/*` alias)
@@ -58,6 +61,22 @@ this way — see `.claude/memory/storage-seam.md`.
 - Minimal `use client` — only leaf components that need browser APIs
 - Heavy components (Monaco editor) must be lazy-loaded via `next/dynamic`
 - Wrap lazy components in `<Suspense>`
+
+### Verify in a browser, not just in CI
+`npm run check` proves the parts are well-formed. It cannot prove they are wired
+together — it passed while sync was permission-denied, the whole app rendered in
+a serif, and Settings had no link pointing at it. Load the page before calling a
+change done:
+
+```bash
+B="$HOME/.claude/skills/gstack/browse/dist/browse"
+$B goto http://localhost:PORT/page.html
+$B console                                              # errors
+$B js "getComputedStyle(document.body).fontFamily"      # styling applied?
+$B js "document.body.innerText.includes('Expected')"    # rendered?
+```
+
+When adding a route, add its entry point in the same change.
 
 ### Content
 - To add questions: edit any file in `src/data/`. No other code changes needed.
