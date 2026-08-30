@@ -45,4 +45,12 @@ sign-in *handshake* is deduped via a shared in-flight promise.
 app, which is why `getCore()`'s promise is never reset — an earlier version
 nulled it after sign-in and would have thrown on the next call.
 
+## Status
+
+Both fixes are verified in production on <https://loft-vad.github.io/int-tutor/>:
+the settings panel reports "Up to date", and the **second-device Google sign-in
+path is confirmed working** — the one that hits
+`auth/credential-already-in-use`, falls back to `signInWithPopup`, and changes
+the uid. That path is the reason `getUid()` must read `auth.currentUser` live.
+
 Related: [[storage-seam]], [[verification-discipline]], [[firebase-project-setup]]
