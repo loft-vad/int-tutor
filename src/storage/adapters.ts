@@ -3,6 +3,7 @@ import type { SyncedAdapter } from './SyncedAdapter';
 
 let _adapter: StorageAdapter | null = null;
 let _synced: SyncedAdapter | null = null;
+let _inFlight: Promise<StorageAdapter> | null = null;
 
 function isIndexedDBAvailable(): boolean {
   if (typeof window === 'undefined') return false;
@@ -33,9 +34,20 @@ async function createLocalAdapter(): Promise<StorageAdapter> {
  * changing this factory. Zustand stores, hooks, and components stay untouched —
  * that is the whole point of the seam.
  */
-export async function getStorageAdapter(): Promise<StorageAdapter> {
-  if (_adapter) return _adapter;
+export function getStorageAdapter(): Promise<StorageAdapter> {
+  if (_adapter) return Promise.resolve(_adapter);
+  // Deduplicate concurrent callers: both Zustand stores and the sync panel
+  // request the adapter at startup. Without this each builds its own
+  // SyncedAdapter and runs its own pull().
+  if (!_inFlight) {
+    _inFlight = buildAdapter().finally(() => {
+      _inFlight = null;
+    });
+  }
+  return _inFlight;
+}
 
+async function buildAdapter(): Promise<StorageAdapter> {
   const local = await createLocalAdapter();
 
   const { isFirebaseConfigured } = await import('./firebase');
@@ -74,4 +86,5 @@ export function getSyncedAdapter(): SyncedAdapter | null {
 export function resetAdapter(): void {
   _adapter = null;
   _synced = null;
+  _inFlight = null;
 }

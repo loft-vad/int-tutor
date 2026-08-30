@@ -44,8 +44,11 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
-        mono: ["var(--font-geist-mono)", "monospace"],
+        // No `system-ui`: the font must not vary by operating system. The
+        // bundled Geist face is primary; the rest are explicit named fallbacks
+        // used only if the webfont fails to load.
+        sans: ["var(--font-geist-sans)", "Arial", "Helvetica", "sans-serif"],
+        mono: ["var(--font-geist-mono)", "Menlo", "Consolas", "monospace"],
       },
       screens: {
         xs: "375px",

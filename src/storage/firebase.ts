@@ -41,6 +41,7 @@ export function isFirebaseConfigured(): boolean {
 }
 
 let _core: Promise<FirebaseCore> | null = null;
+let _signInFlight: Promise<import('firebase/auth').User> | null = null;
 
 /**
  * Initialise the Firebase app, auth, and Firestore — exactly once.
@@ -86,24 +87,48 @@ export function getCore(): Promise<FirebaseCore> {
  */
 export async function getUid(): Promise<string> {
   const { auth } = await getCore();
+  // Read live: signing in with Google changes the uid, so never cache it.
   if (auth.currentUser) return auth.currentUser.uid;
 
+  // Deduplicate concurrent callers. Without this, each caller invokes
+  // signInAnonymously and creates a SEPARATE anonymous account. The document
+  // path then gets built from one uid while the request carries another's
+  // token, and Firestore rejects it with permission-denied.
+  if (!_signInFlight) {
+    _signInFlight = awaitUser(auth).finally(() => {
+      _signInFlight = null;
+    });
+  }
+  const user = await _signInFlight;
+  return user.uid;
+}
+
+async function awaitUser(
+  auth: import('firebase/auth').Auth
+): Promise<import('firebase/auth').User> {
   const authMod = await import('firebase/auth');
-  const user = await new Promise<import('firebase/auth').User>((resolve, reject) => {
+  return new Promise<import('firebase/auth').User>((resolve, reject) => {
+    let signInStarted = false;
     const unsub = authMod.onAuthStateChanged(
       auth,
       (u) => {
         if (u) {
           unsub();
           resolve(u);
-        } else {
-          authMod.signInAnonymously(auth).catch(reject);
+        } else if (!signInStarted) {
+          signInStarted = true;
+          authMod.signInAnonymously(auth).catch((err) => {
+            unsub();
+            reject(err);
+          });
         }
       },
-      reject
+      (err) => {
+        unsub();
+        reject(err);
+      }
     );
   });
-  return user.uid;
 }
 
 /**

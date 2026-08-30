@@ -14,6 +14,31 @@
   }
 }
 
+/*
+ * Main font, hardcoded.
+ *
+ * The bundled Geist variable font is the primary family — it ships with the app
+ * (self-hosted .woff), so it renders identically on every OS instead of being
+ * resolved from whatever the system happens to provide. `system-ui` is
+ * deliberately NOT in the stack; the named fallbacks only apply if the webfont
+ * fails to load.
+ *
+ * This must be stated explicitly: `geistSans.variable` on <body> only DEFINES
+ * --font-geist-sans, it does not apply it. Without this rule the page falls back
+ * to the browser default, which is a serif (Times).
+ */
+html,
+body {
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+code,
+pre,
+kbd,
+samp {
+  font-family: var(--font-geist-mono), Menlo, Consolas, monospace;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

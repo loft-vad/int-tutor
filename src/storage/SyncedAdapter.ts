@@ -119,6 +119,7 @@ export class SyncedAdapter implements StorageAdapter {
         error: null,
       });
     } catch (err) {
+      console.warn('[sync] pull failed:', err);
       this.setState({ status: 'error', error: describe(err) });
     }
   }
@@ -162,6 +163,7 @@ export class SyncedAdapter implements StorageAdapter {
         error: null,
       });
     } catch (err) {
+      console.warn('[sync] push failed:', err);
       this.setState({ status: 'error', error: describe(err) });
     }
   }
@@ -219,5 +221,10 @@ function shallowEqualProgress(
 }
 
 function describe(err: unknown): string {
-  return err instanceof Error ? err.message : String(err);
+  // Surface the provider error code too — "permission-denied" vs "unavailable"
+  // vs "unauthenticated" need completely different fixes, and the bare message
+  // ("Missing or insufficient permissions.") does not distinguish them.
+  const code = (err as { code?: string } | null)?.code;
+  const msg = err instanceof Error ? err.message : String(err);
+  return code ? `${code}: ${msg}` : msg;
 }
